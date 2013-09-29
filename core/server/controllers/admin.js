@@ -317,7 +317,7 @@ adminControllers = {
                 });
         },
         'import': function (req, res) {
-            if (!req.files.importfile || req.files.importfile.size === 0 || req.files.importfile.name.indexOf('json') === -1) {
+            if (!req.files.importfile || req.files.importfile.size === 0) {
                 /**
                  * Notify of an error if it occurs
                  *
@@ -349,21 +349,15 @@ adminControllers = {
                     // Read the file contents
                     return nodefn.call(fs.readFile, req.files.importfile.path)
                         .then(function (fileContents) {
-                            var importData;
+                            return ghost.doFilter('import', {fn: dataImport, file: req.files.importfile, data: fileContents, version: databaseVersion}, function (importer) {
+                                //console.log('post filter', importer);
+                                if (importer.fn && _.isFunction(importer.fn)) {
+                                    // Do the import with the function we have.
+                                    return importer.fn(importer.data, importer.file, importer.version);
+                                }
 
-                            // Parse the json data
-                            try {
-                                importData = JSON.parse(fileContents);
-                            } catch (e) {
-                                return when.reject(new Error("Failed to parse the import file"));
-                            }
-
-                            if (!importData.meta || !importData.meta.version) {
-                                return when.reject(new Error("Import data does not specify version"));
-                            }
-
-                            // Import for the current version
-                            return dataImport(databaseVersion, importData);
+                                return when.reject(new Error('No Import Function'))
+                            });
                         });
                 })
                 .then(function importSuccess() {

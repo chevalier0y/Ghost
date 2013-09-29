@@ -1,7 +1,14 @@
 var when = require('when');
 
-module.exports = function (version, data) {
+module.exports = function (data, file, version) {
     var importer;
+
+    console.log('file', file);
+
+    if (file.name.indexOf('json') === -1) {
+        console.log('this is an error...');
+        return when.reject(new Error("Ghost importer requires a .json file"));
+    }
 
     try {
         importer = require('./' + version);

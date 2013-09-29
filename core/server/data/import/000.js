@@ -16,9 +16,23 @@ Importer000 = function () {
 };
 
 Importer000.prototype.importData = function (data) {
-    return this.canImport(data)
+    var importData;
+
+    // Parse the json data
+    try {
+        importData = JSON.parse(data);
+    } catch (e) {
+        return when.reject(new Error("Failed to parse the import file"));
+    }
+
+    if (!importData.meta || !importData.meta.version) {
+        return when.reject(new Error("Import data does not specify version"));
+    }
+
+
+    return this.canImport(importData)
         .then(function (importerFunc) {
-            return importerFunc(data);
+            return importerFunc(importData);
         }, function (reason) {
             return when.reject(reason);
         });
