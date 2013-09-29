@@ -343,7 +343,7 @@ adminControllers = {
                 .then(function (setting) {
                     return when(setting.value);
                 }, function () {
-                    return when('001');
+                    errors.logAndThrowError('Can\'t find your databaseVersion.');
                 })
                 .then(function (databaseVersion) {
                     // Read the file contents

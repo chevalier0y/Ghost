@@ -11,9 +11,7 @@ Importer000 = function () {
     this.version = '000';
 
     this.importFrom = {
-        '000': this.basicImport,
-        '001': this.tempImport,
-        '002': this.tempImport
+        '000': this.basicImport
     };
 };
 
