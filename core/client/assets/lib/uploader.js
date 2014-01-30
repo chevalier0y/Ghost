@@ -63,10 +63,7 @@
                 var self = this;
 
                 $dropzone.find('.js-fileupload').fileupload().fileupload("option", {
-                    url: Ghost.paths.subdir + '/ghost/upload/',
-                    headers: {
-                        'X-CSRF-Token': $("meta[name='csrf-param']").attr('content')
-                    },
+                    url: Ghost.paths.subdir + '/ghost/upload/?_csrf=' + $("meta[name='csrf-param']").attr('content'),
                     add: function (e, data) {
                         /*jslint unparam:true*/
                         $('.js-button-accept').prop('disabled', true);

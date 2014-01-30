@@ -16,13 +16,12 @@
 
             // Disable import button and initizalize BlueImp file upload
             this.uploadButton.prop('disabled', 'disabled');
+
             $('#importfile').fileupload({
-                url: Ghost.paths.apiRoot + '/db/',
+                // We could use headers, but not all browsers (IE9) support this.
+                url: Ghost.paths.apiRoot + '/db/?_csrf=' + $("meta[name='csrf-param']").attr('content'),
                 limitMultiFileUploads: 1,
                 replaceFileInput: false,
-                headers: {
-                    'X-CSRF-Token': $("meta[name='csrf-param']").attr('content')
-                },
                 dataType: 'json',
                 add: function (e, data) {
                     /*jslint unparam:true*/
