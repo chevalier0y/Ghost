@@ -24,13 +24,18 @@ function hasActionsMap() {
 
 // TODO: Move this to its own file so others can use it?
 function parseContext(context) {
+
+    if (!context) {
+        throw new Error('CanThis called without a context');
+    }
+
     // Parse what's passed to canThis.beginCheck for standard user and app scopes
     var parsed = {
             internal: false,
             user: null,
             app: null
         };
-    
+
     if (context && (context === 'internal' || context.internal)) {
         parsed.internal = true;
     }
@@ -158,7 +163,7 @@ CanThisResult.prototype.beginCheck = function (context) {
         // Resolve null if no context.user to prevent db call
         userPermissionLoad = when.resolve(null);
     }
-    
+
 
     // Kick off loading of effective app permissions if necessary
     if (context.app) {
