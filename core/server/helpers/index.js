@@ -531,7 +531,8 @@ coreHelpers.ghost_head = function (options) {
 coreHelpers.ghost_foot = function (options) {
     /*jshint unused:false*/
     var jquery = isProduction ? 'jquery.min.js' : 'jquery.js',
-        foot = [];
+        foot = [],
+        jsonData;
 
     foot.push(scriptTemplate({
         source: config.paths.subdir + '/public/' + jquery,
@@ -540,11 +541,27 @@ coreHelpers.ghost_foot = function (options) {
 
     if (!isProduction) {
         foot.push(scriptTemplate({
+            source: config.paths.subdir + '/shared/lib/jsonview/jquery.jsonview.js',
+            version: coreHelpers.assetHash
+        }));
+        foot.push('<link rel="stylesheet" href="' + config.paths.subdir
+            + '/shared/lib/jsonview/jquery.jsonview.css?=' + coreHelpers.assetHash + '" />'
+        );
+        foot.push(scriptTemplate({
             source: config.paths.subdir + '/shared/lib/dev-bar.js',
             version: coreHelpers.assetHash
         }));
 
-        foot.push('<div class="dev-bar" data-json="' + encodeURIComponent(JSON.stringify(this)) + '"></div>');
+        jsonData = this;
+        delete jsonData.body;
+        delete jsonData.cache;
+        delete jsonData.secure;
+        delete jsonData.settings;
+        delete jsonData.version;
+        delete jsonData._locals;
+        jsonData = JSON.stringify(this);
+
+        foot.push('<div class="dev-bar" data-json="' + encodeURI(jsonData) + '"></div>');
     }
 
     return filters.doFilter('ghost_foot', foot).then(function (foot) {

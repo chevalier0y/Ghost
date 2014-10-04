@@ -6,18 +6,20 @@
         formSel     = '.json-path',
         jsonDataSel     = '.json-data',
         devBarHTML  = '<strong>Dev Bar:</strong> ' +
-            '| Context: <span class="context"></span> ' +
+            'Context: <span class="context"></span> ' +
             '| Data: <span class="data"><a>{...}</a><span class="json"></span></span>',
         formHTML    = '<input class="json-path" type="text"><span class="json-data"></span>';
 
 
     $(document).ready(function () {
         var $el = $(devBarSel),
-            jsonData = $.parseJSON(decodeURIComponent($el.data('json'))),
+            jsonData = $.parseJSON(decodeURI($el.data('json'))),
+            jsonKeys = [],
             $contextEl,
             $dataEl,
-            $jsonEl;
-
+            $jsonEl,
+            $jsonDataEl,
+            $formEl;
 
         $el.append(devBarHTML);
 
@@ -31,7 +33,7 @@
         $el.css({
             'background': '#000',
             'color': '#fff',
-            'position': 'absolute',
+            'position': 'fixed',
             'top': '0px',
             'width': '100%',
             'height:': '30px',
@@ -45,16 +47,19 @@
             'position': 'absolute',
             'top': '30px',
             'left': '0px',
-            'width': '100%'
+            'width': '100%',
+            'height': '300px',
+            'overflow': 'scroll',
+            'padding': '5px'
 
         });
 
         // More Content
         $contextEl.append('[');
 
-        $.each(jsonData._locals.context, function (i, context) {
+        $.each(jsonData.context, function (i, context) {
             $contextEl.append(context);
-            if (jsonData._locals.context.length > i + 1) {
+            if (jsonData.context.length > i + 1) {
                 $el.find(contextSel).append(', ');
             }
         });
@@ -62,11 +67,33 @@
         $contextEl.append(']');
 
         $jsonEl.append(formHTML);
-        $jsonEl.find(jsonDataSel).append(JSON.stringify(jsonData));
+        $jsonDataEl = $jsonEl.find(jsonDataSel);
+        $jsonDataEl.JSONView(jsonData, {collapsed: true});
 
         // Behaviour
-        $jsonEl.find(formSel).on('keypress', function () {
+        $formEl = $jsonEl.find(formSel);
+        // load the keys
+        $.each(jsonData, function (key, item) {
+            jsonKeys.push(key);
+            if (['post', 'tag', 'author'].indexOf(key) !== -1) {
+                $.each(item, function (subkey, obj) {
+                   jsonKeys.push(key + '.' + subkey);
+                });
+            }
+        });
 
+        console.log('keys', jsonKeys);
+
+        $formEl.on('keyup', function (e) {
+            var jsonPath = $formEl.val();
+
+            if (jsonPath === '') {
+                $jsonDataEl.JSONView(jsonData, {collapsed: true});
+            }
+
+            if (jsonKeys.indexOf(jsonPath) !== -1) {
+                $jsonDataEl.JSONView(jsonData[jsonPath]);
+            }
         });
 
         $dataEl.find('a').on('click', function () {
