@@ -54,14 +54,20 @@ utils = {
         // Remove non ascii characters
         string = unidecode(string);
 
-        // Remove URL reserved chars: `:/?#[]@!$&'()*+,;=` as well as `\%<>|^~£"`
-        string = string.replace(/[:\/\?#\[\]@!$&'()*+,;=\\%<>\|\^~£"]/g, '')
-            // Replace dots and spaces with a dash
-            .replace(/(\s|\.)/g, '-')
+        // Replace URL reserved chars: `:/?#[]!$&()*+,;=` as well as `\%<>|^~£"`
+        // £ is actually removed with unicode, but replaced with `PS` so we check for that
+        string = string.replace(/(\s|\.|@|:|\/|\?|#|\[|\]|!|\$|&|\(|\)|\*|\+|,|;|=|\\|%|<|>|\||\^|~|PS|")/g, '-')
+            // Remove apostrophes
+            .replace(/'/g, '')
             // Convert 2 or more dashes into a single dash
             .replace(/-+/g, '-')
+            // Remove any dashes at the beginning
+            .replace(/^-/, '')
             // Make the whole thing lowercase
             .toLowerCase();
+
+        // Remove trailing dash if needed
+        string = string.charAt(string.length - 1) === '-' ? string.substr(0, string.length - 1) : string;
 
         return string;
     },
