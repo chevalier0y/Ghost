@@ -53,4 +53,9 @@ describe('Safe String', function () {
         var result = safeString('This.');
         result.should.equal('this');
     });
+
+    it('should handle pound signs', function () {
+        var result = safeString('WHOOPS! I spent all my £ again!');
+        result.should.equal('whoops-i-spent-all-my-again');
+    });
 });
