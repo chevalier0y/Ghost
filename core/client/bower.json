@@ -18,6 +18,7 @@
     "jqueryui-touch-punch": "furf/jquery-ui-touch-punch",
     "keymaster": "git://github.com/madrobby/keymaster#564ea42e07de40da8113a571f17ceae8802672ff",
     "loader.js": "ember-cli/loader.js#3.2.0",
+    "blueimp-md5": "1.1.0",
     "moment": "2.8.3",
     "nanoscroller": "0.8.4",
     "normalize-scss": "3.0.2",

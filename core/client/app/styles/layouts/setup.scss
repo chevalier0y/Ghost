@@ -74,7 +74,7 @@
 
     // Set the default divider to green, and then override it to
     // grey using the next~sibling selector. Means that all
-    // dividers before .current will be automatically green.
+    // dividers before .active will be automatically green.
     .divider {
         align-self: center;
         width: 22px;
@@ -84,11 +84,11 @@
         background-size: 6px 2px;
         background-repeat: repeat-x;
     }
-    .current ~ .divider {
+    .active ~ .divider {
         background-image: linear-gradient(to right, #E3E3E3 33%, rgba(255,255,255,0) 0%);
     }
 
-    .step {
+    a {
         display: table-cell;
         vertical-align: middle;
         text-align: center;
@@ -106,7 +106,7 @@
         }
     }
 
-    .current ~ li:not(divider) .step {
+    .active ~ li:not(divider) a {
         border: #E3E3E3 2px solid;
         color: #CDCDCD;
         background: transparent;
@@ -119,7 +119,7 @@
         }
     }
 
-    .current .step {
+    .active a {
         border: $green 2px solid;
         color: $green;
         font-weight: bold;
@@ -255,11 +255,30 @@
         transition: opacity 0.3s ease;
     }
 
-    .img {
+    .placeholder-img {
         display: block;
         width: 90px;
         height: 90px;
         background-color: #F8FBFD;
+        background-size: cover;
+        background-position: center center;
+        border-radius: 100%;
+        animation: fade-in 1s;
+    }
+
+    .gravatar-img {
+        box-sizing: content-box;
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        border-radius: 100%;
+        width: calc(100% - 8px);
+        display: block;
+        width: 90px;
+        height: 90px;
+        border: #fff 4px solid;
         background-size: cover;
         background-position: center center;
         border-radius: 100%;
