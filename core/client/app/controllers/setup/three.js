@@ -3,14 +3,14 @@ import ajax from 'ghost/utils/ajax';
 import ValidationEngine from 'ghost/mixins/validation-engine';
 
 var SetupThreeController = Ember.Controller.extend(ValidationEngine, {
-    users: null,
-    numUsers: Ember.computed('users', function () {
-        var userArray = [];
-        if (this.get('users')) {
-            userArray = this.get('users').split('\n');
-        }
-
-        return userArray.length;
+    users: '',
+    usersArray: Ember.computed('users', function () {
+        return this.get('users').split('\n').filter(function (user) {
+            return validator.isEmail(user);
+        });
+    }),
+    numUsers: Ember.computed('usersArray', function () {
+        return this.get('usersArray').length;
     }),
     buttonText: Ember.computed('numUsers', function () {
         var user = this.get('numUsers') === 1 ? 'user' : 'users';
@@ -19,19 +19,24 @@ var SetupThreeController = Ember.Controller.extend(ValidationEngine, {
     }),
     actions: {
         invite: function () {
+            console.log('inviting', this.get('usersArray'));
 
-            var usersArray = this.get('users').split('\n').filter(function (user) {
-                return validator.isEmail(user);
-            });
-
-            console.log('inviting', usersArray);
+            if (this.get('numUsers') === 0) {
+                this.sendAction('signin');
+            }
 
             // do invites
-            self.get('session').authenticate('simple-auth-authenticator:oauth2-password-grant', {
+
+
+
+        },
+        signin: function () {
+            var self = this;
+
+            this.get('session').authenticate('simple-auth-authenticator:oauth2-password-grant', {
                 identification: self.get('email'),
                 password: self.get('password')
             });
-
         }
     }
 });

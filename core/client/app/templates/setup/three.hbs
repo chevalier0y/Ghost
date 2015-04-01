@@ -1,0 +1,18 @@
+<section class="gh-setup-content">
+    <header>
+        <h1>Invite your team</h1>
+        <p>Ghost works best when shared with others. Collaborate, get feedback on your posts &amp; work together on ideas.</p>
+    </header>
+
+    <img class="gh-setup-faces" src="{{gh-path 'admin' 'img/users.png'}}" alt="" />
+
+    <form class="gh-setup-invite">
+        <label>Enter one email address per line, we’ll handle the rest! <i class="icon-mail"></i></label>
+        {{textarea name="users" placeholder="john@example.com
+sally.sanders@example.com" value=users}}
+    </form>
+
+    <button {{action "signin"}} {{bind-attr class=":btn :btn-default :btn-lg :btn-block numUsers:btn-green:btn-minor"}}>
+        {{buttonText}}
+    </button>
+</section>

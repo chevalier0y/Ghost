@@ -2,7 +2,7 @@ import Ember from 'ember';
 import ajax from 'ghost/utils/ajax';
 import ValidationEngine from 'ghost/mixins/validation-engine';
 
-var SetupController = Ember.Controller.extend(ValidationEngine, {
+var SetupTwoController = Ember.Controller.extend(ValidationEngine, {
     size: 90,
     blogTitle: null,
     name: null,
@@ -66,4 +66,4 @@ var SetupController = Ember.Controller.extend(ValidationEngine, {
     }
 });
 
-export default SetupController;
+export default SetupTwoController;
