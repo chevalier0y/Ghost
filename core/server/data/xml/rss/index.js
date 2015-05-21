@@ -12,6 +12,7 @@ var _        = require('lodash'),
     generate,
     generateFeed,
     getFeedXml,
+    ensureValid,
     feedCache = {};
 
 function isPaginated(req) {
@@ -127,6 +128,20 @@ function processUrls(html, siteUrl, itemUrl) {
     return htmlContent;
 }
 
+/**
+ * Ensure that the strings used in the RSS feed conform to the RSS spec:
+ * http://www.w3.org/TR/REC-xml/#charsets
+ * @param {String} str
+ * @returns {String} str
+ */
+ensureValid = function ensureValid(str) {
+    // #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]
+    var re = /(?![\u0009\u000a\u000d\u0020-\uD7FF\uE000-\uFFFD])./g;
+    str = str.replace(re, '');
+
+    return str;
+};
+
 getFeedXml = function (path, data) {
     var dataHash = crypto.createHash('md5').update(JSON.stringify(data)).digest('hex');
     if (!feedCache[path] || feedCache[path].hash !== dataHash) {
@@ -142,8 +157,8 @@ getFeedXml = function (path, data) {
 
 generateFeed = function (data) {
     var feed = new RSS({
-        title: data.title,
-        description: data.description,
+        title: ensureValid(data.title),
+        description: ensureValid(data.description),
         generator: 'Ghost ' + data.version,
         feed_url: data.feedUrl,
         site_url: data.siteUrl,
@@ -158,8 +173,8 @@ generateFeed = function (data) {
         var itemUrl = config.urlFor('post', {post: post, permalinks: data.permalinks, secure: data.secure}, true),
             htmlContent = processUrls(post.html, data.siteUrl, itemUrl),
             item = {
-                title: post.title,
-                description: post.meta_description || downsize(htmlContent.html(), {words: 50}),
+                title: ensureValid(post.title),
+                description: ensureValid(post.meta_description || downsize(htmlContent.html(), {words: 50})),
                 guid: post.uuid,
                 url: itemUrl,
                 date: post.published_at,
@@ -189,7 +204,7 @@ generateFeed = function (data) {
 
         item.custom_elements.push({
             'content:encoded': {
-                _cdata: htmlContent.html()
+                _cdata: ensureValid(htmlContent.html())
             }
         });
 
