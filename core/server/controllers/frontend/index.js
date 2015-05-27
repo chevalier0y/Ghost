@@ -1,9 +1,6 @@
 /**
  * Main controller for Ghost frontend
  */
-
-/*global require, module */
-
 var _           = require('lodash'),
     api         = require('../../api'),
     rss         = require('../../data/xml/rss'),
@@ -15,11 +12,10 @@ var _           = require('lodash'),
     routeMatch  = require('path-match')(),
     setReqCtx   = require('./secure'),
 
-    setResponseContext = require('./context'),
-    getActiveThemePaths = require('./theme-paths'),
     renderChannel = require('./render-channel'),
-    handleError = require('./error'),
     renderPost = require('./render-post'),
+    composer = require('./composer'),
+    handleError = require('./error'),
 
     frontendControllers,
     staticPostPermalink = routeMatch('/:slug/:edit?');
@@ -172,21 +168,12 @@ frontendControllers = {
     },
     rss: rss,
     private: function (req, res) {
-        var defaultPage = path.resolve(config.paths.adminViews, 'private.hbs');
-        return getActiveThemePaths().then(function (paths) {
-            var data = {};
-            if (res.error) {
-                data.error = res.error;
-            }
+        var viewTemplates = ['private', path.resolve(config.paths.adminViews, 'private.hbs')];
 
-            setResponseContext(req, res, function () {
-                if (paths.hasOwnProperty('private.hbs')) {
-                    return res.render('private', data);
-                } else {
-                    return res.render(defaultPage, data);
-                }
-            });
-        });
+        composer({
+            data: res.error ? {error: res.error} : {},
+            views: viewTemplates
+        })(req, res);
     }
 };
 

@@ -1,94 +1,115 @@
 var _           = require('lodash'),
 
-    setResponseContext = require('./context'),
-    getActiveThemePaths = require('./theme-paths'),
     getPostPage = require('./get-post-page'),
-    formatPageResponse = require('./format-response').channel,
     handleError = require('./error'),
     setReqCtx   = require('./secure'),
 
-    template    = require('../../helpers/template'),
+    composer    = require('./composer'),
     config      = require('../../config'),
     filters     = require('../../filters');
+
+// NOTE: helper function composes a URL to redirect to, should not be here.
+function createUrl(channelOpts, page) {
+    var url = config.paths.subdir + channelOpts.route;
+
+    if (channelOpts.slug) {
+        url = url.replace(':slug', channelOpts.slug);
+    }
+
+    if (page && page > 1) {
+        url += 'page/' + page + '/';
+    }
+
+    return url;
+}
+
+function getViewTemplates(channelOpts, pageParam) {
+    // Views array should be: ['channel-slug', 'channel', 'index']
+    // For home it should be: ['home', 'index']
+    var viewTemplates = ['index'];
+
+    if (channelOpts.slugTemplate && channelOpts.slug) {
+        viewTemplates.unshift(channelOpts.name);
+        viewTemplates.unshift(channelOpts.name + '-' + channelOpts.slug);
+    }
+
+    if (channelOpts.firstPageTemplate && pageParam === 1) {
+        viewTemplates.unshift(channelOpts.firstPageTemplate);
+    }
+
+    return viewTemplates;
+}
 
 function renderChannel(channelOpts) {
     channelOpts = channelOpts || {};
 
+    // NOTE: This is a piece of standard middleware, taking req, res, next
     return function renderChannel(req, res, next) {
+        // NOTE:  page param handling, for pagination
         var pageParam = req.params.page !== undefined ? parseInt(req.params.page, 10) : 1,
+            // NOTE:  options for the API
             options = {
                 page: pageParam
             },
-            hasSlug,
             filter, filterKey;
 
+        // NOTE: dynamic handling for fetching channel based on name & slug
         // Add the slug if it exists in the route
         if (channelOpts.route.indexOf(':slug') !== -1) {
             options[channelOpts.name] = req.params.slug;
-            hasSlug = true;
+            channelOpts.slug = req.params.slug;
         }
 
-        function createUrl(page) {
-            var url = config.paths.subdir + channelOpts.route;
-
-            if (hasSlug) {
-                url = url.replace(':slug', options[channelOpts.name]);
-            }
-
-            if (page && page > 1) {
-                url += 'page/' + page + '/';
-            }
-
-            return url;
-        }
-
+        // NOTE: more pageParam handling
         if (isNaN(pageParam) || pageParam < 1 || (req.params.page !== undefined && pageParam === 1)) {
-            return res.redirect(createUrl());
+            return res.redirect(createUrl(channelOpts));
         }
 
+        // NOTE: get started with fetching data
+        // getPostPage fetches the PPP setting, AND does the API call
+        // EVERYTHING ABOVE HERE IS PRE DATA FETCH
         return getPostPage(options).then(function (page) {
+            // EVERYTHING BELOW HERE IS POST DATA FETCH
+
+            // NOTE: page = our data from the API
+
+            // NOTE: EVEN MORE pageParam handling
             // If page is greater than number of pages we have, redirect to last page
             if (pageParam > page.meta.pagination.pages) {
-                return res.redirect(createUrl(page.meta.pagination.pages));
+                return res.redirect(createUrl(channelOpts, page.meta.pagination.pages));
             }
 
+            // NOTE: something to do with secure which needs to GO AWAY
             setReqCtx(req, page.posts);
+
+            // NOTE: filter handling for tag/author channels
             if (channelOpts.filter && page.meta.filters[channelOpts.filter]) {
                 filterKey = page.meta.filters[channelOpts.filter];
                 filter = (_.isArray(filterKey)) ? filterKey[0] : filterKey;
                 setReqCtx(req, filter);
             }
 
+            // NOTE: filters.doFilter
             filters.doFilter('prePostsRender', page.posts, res.locals).then(function (posts) {
-                getActiveThemePaths().then(function (paths) {
-                    var view = 'index',
-                        result,
-                        extra = {};
+                var data = {posts: posts, page: page},
+                    extra = {};
 
-                    if (channelOpts.firstPageTemplate && paths.hasOwnProperty(channelOpts.firstPageTemplate + '.hbs')) {
-                        view = (pageParam > 1) ? 'index' : channelOpts.firstPageTemplate;
-                    } else if (channelOpts.slugTemplate) {
-                        view = template.getThemeViewForChannel(paths, channelOpts.name, options[channelOpts.name]);
-                    } else if (paths.hasOwnProperty(channelOpts.name + '.hbs')) {
-                        view = channelOpts.name;
+                // TODO move all of this into the format response tools
+                if (channelOpts.filter) {
+                    extra[channelOpts.name] = (filterKey) ? filter : '';
+
+                    if (!extra[channelOpts.name]) {
+                        return next();
                     }
 
-                    if (channelOpts.filter) {
-                        extra[channelOpts.name] = (filterKey) ? filter : '';
+                    data.extras = extra;
+                }
 
-                        if (!extra[channelOpts.name]) {
-                            return next();
-                        }
-
-                        result = formatPageResponse(posts, page, extra);
-                    } else {
-                        result = formatPageResponse(posts, page);
-                    }
-
-                    setResponseContext(req, res, function render() {
-                        res.render(view, result);
-                    });
-                });
+                return composer({
+                    data: data,
+                    formatter: 'channel',
+                    views: getViewTemplates(channelOpts, pageParam)
+                })(req, res);
             });
         }).catch(handleError(next));
     };

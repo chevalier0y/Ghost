@@ -11,7 +11,6 @@ var hbs             = require('express-hbs'),
     api             = require('../api'),
     config          = require('../config'),
     filters         = require('../filters'),
-    template        = require('./template'),
     body_class;
 
 body_class = function (options) {
@@ -55,11 +54,21 @@ body_class = function (options) {
 
     return api.settings.read({context: {internal: true}, key: 'activeTheme'}).then(function (response) {
         var activeTheme = response.settings[0],
-            paths = config.paths.availableThemes[activeTheme.value],
-            view;
+            themePaths = config.paths.availableThemes[activeTheme.value],
+            customPageView,
+            view = 'post';
 
         if (post && page) {
-            view = template.getThemeViewForPost(paths, post).split('-');
+            if (post.page) {
+                customPageView = 'page-' + post.slug;
+                if (themePaths.hasOwnProperty(customPageView + '.hbs')) {
+                    view = customPageView;
+                } else if (themePaths.hasOwnProperty('page.hbs')) {
+                    view = 'page';
+                }
+            }
+
+            view = view.split('-');
 
             if (view[0] === 'page' && view.length > 1) {
                 classes.push(view.join('-'));

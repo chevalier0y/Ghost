@@ -5,7 +5,6 @@
  * is that the only way to determine whether or not we are a post, or a page, is with data after all the
  *
  */
-
 var config = require('../../config');
 
 function setResponseContext(req, res, next) {
@@ -46,4 +45,7 @@ function setResponseContext(req, res, next) {
     next();
 }
 
-module.exports = setResponseContext;
+module.exports = function context(options) {
+    /*jshint unused:false*/
+    return setResponseContext;
+};

@@ -1,8 +1,14 @@
-var setResponseContext = require('./context'),
-    getActiveThemePaths = require('./theme-paths'),
-    formatResponse = require('./format-response').single,
+var composer = require('./composer');
 
-    template    = require('../../helpers/template');
+function getViewTemplates(post) {
+    var viewTemplates = ['post'];
+    if (post.page) {
+        viewTemplates.unshift('page');
+        viewTemplates.unshift('page-' + post.slug);
+    }
+
+    return viewTemplates;
+}
 
 /*
  * Sets the response context around a post and renders it
@@ -12,14 +18,11 @@ var setResponseContext = require('./context'),
  */
 function renderPost(req, res) {
     return function (post) {
-        return getActiveThemePaths().then(function (paths) {
-            var view = template.getThemeViewForPost(paths, post),
-                response = formatResponse(post);
-
-            setResponseContext(req, res, function () {
-                res.render(view, response);
-            });
-        });
+        return composer({
+            data: post,
+            formatter: 'single',
+            views: getViewTemplates(post)
+        })(req, res);
     };
 }
 
