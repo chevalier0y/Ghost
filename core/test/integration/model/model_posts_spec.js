@@ -26,6 +26,7 @@ describe('Post Model', function () {
         afterEach(testUtils.teardown);
         afterEach(function () {
             sandbox.restore();
+            events.removeAllListeners();
         });
         beforeEach(testUtils.setup('owner', 'posts', 'apps'));
 
