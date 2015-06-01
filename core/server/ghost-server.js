@@ -6,6 +6,7 @@ var Promise = require('bluebird'),
     semver = require('semver'),
     packageInfo = require('../../package.json'),
     errors = require('./errors'),
+    events = require('./events'),
     config = require('./config');
 
 /**
@@ -104,6 +105,7 @@ GhostServer.prototype.stop = function () {
             });
 
             self.closeConnections();
+            events.removeAllListeners();
         }
     });
 };
