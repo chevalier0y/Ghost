@@ -7,6 +7,7 @@ var testUtils     = require('../../../utils'),
 
     ghost         = require('../../../../../core'),
 
+    server,
     request;
 
 describe('Post API', function () {
@@ -16,6 +17,7 @@ describe('Post API', function () {
         // starting ghost automatically populates the db
         // TODO: prevent db init, and manage bringing up the DB with fixtures ourselves
         ghost().then(function (ghostServer) {
+            server = ghostServer;
             request = supertest.agent(ghostServer.rootApp);
         }).then(function () {
             return testUtils.doAuth(request, 'posts');
@@ -30,6 +32,8 @@ describe('Post API', function () {
 
     after(function (done) {
         testUtils.clearData().then(function () {
+            return server.stop();
+        }).then(function () {
             done();
         }).catch(done);
     });
